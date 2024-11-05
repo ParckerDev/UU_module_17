@@ -1,4 +1,3 @@
-from warnings import deprecated
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from backend.db_depend import get_db
