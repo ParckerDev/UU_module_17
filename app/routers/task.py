@@ -1,3 +1,4 @@
+from warnings import deprecated
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from backend.db_depend import get_db
@@ -38,6 +39,10 @@ async def create_task(db: Annotated[Session, Depends(get_db)], user_id: int, new
             user_id=user_id,
             slug=slugify(new_task.title)
         ))
+        db.commit()
+        return {'status_code': status.HTTP_201_CREATED, 'transaction': 'Successful'}
+    else:
+        return {'status_code': status.HTTP_404_NOT_FOUND, 'transaction': 'Failed'}
 
 @router.put('/update')
 async def update_task(db: Annotated[Session, Depends(get_db)], task_id: int, update_task: UpdateTask):
@@ -52,7 +57,17 @@ async def update_task(db: Annotated[Session, Depends(get_db)], task_id: int, upd
         content=update_task.content,
         priority=update_task.priority
     ))
+    db.commit()
+    return {'status_code': status.HTTP_200_OK, 'transaction': 'Task update is successful!'}
 
 @router.delete('/delete')
-async def delete_task():
-    pass
+async def delete_task(db: Annotated[Session, Depends(get_db)], task_id):
+    task = db.scalars(select(Task).where(Task.id == task_id)).one()
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='task was not found'
+        )
+    db.execute(delete(Task).where(Task.id == task_id))
+    db.commit()
+    return {'status_code': status.HTTP_200_OK, 'transaction': 'Task delete is successful!'}
