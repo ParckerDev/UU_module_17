@@ -12,12 +12,20 @@ router = APIRouter(prefix='/user', tags=['USER'])
 
 
 @router.get('/')
-async def get_all_users():
-    pass
+async def get_all_users(db: Annotated[Session, Depends(get_db)]):
+    users = db.scalars(select(User).where(User.username != None)).all()
+    return users
 
 @router.get('/user_id')
-async def user_by_id():
-    pass
+async def user_by_id(db: Annotated[Session, Depends(get_db)], user_id):
+    user = db.scalars(select(User).where(User.id == user_id))
+    if user:
+        return user
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found'
+        )
 
 @router.post('/create')
 async def create_user():
