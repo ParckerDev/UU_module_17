@@ -40,8 +40,18 @@ async def create_task(db: Annotated[Session, Depends(get_db)], user_id: int, new
         ))
 
 @router.put('/update')
-async def update_task():
-    pass
+async def update_task(db: Annotated[Session, Depends(get_db)], task_id: int, update_task: UpdateTask):
+    task = db.scalars(select(Task).where(Task.id == task_id)).one()
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='task was not found'
+        )
+    db.execute(update(Task).where(Task.id == task.id).values(
+        title=update_task.title,
+        content=update_task.content,
+        priority=update_task.priority
+    ))
 
 @router.delete('/delete')
 async def delete_task():
