@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from backend.db_depend import get_db
 from typing import Annotated
-from models import Task
-from schemas import CreateUser, UpdateUser
+from models import Task, User
+from schemas import CreateTask, UpdateTask
 from sqlalchemy import insert, select, update, delete
 from slugify import slugify
 
@@ -28,8 +28,16 @@ async def task_by_id(db: Annotated[Session, Depends(get_db)], task_id: int):
     
 
 @router.post('/create')
-async def create_task():
-    pass
+async def create_task(db: Annotated[Session, Depends(get_db)], user_id: int, new_task: CreateTask):
+    user = db.scalars(select(User).where(User.id == user_id)).one_or_none()
+    if user:
+        db.execute(insert(Task).values(
+            title=new_task.title,
+            content=new_task.content,
+            priority=new_task.priority,
+            user_id=user_id,
+            slug=slugify(new_task.title)
+        ))
 
 @router.put('/update')
 async def update_task():
