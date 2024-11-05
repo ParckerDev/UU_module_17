@@ -1,6 +1,8 @@
-from models import Base, Task
+from app.models.base import Base
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship, DeclarativeBase
+from sqlalchemy.orm import relationship
+from app.models import *
+
 
 
 class User(Base):
@@ -17,4 +19,4 @@ class User(Base):
 
 
 from sqlalchemy.schema import CreateTable
-print(CreateTable(User.__table__)) # type: ignore
+#print(CreateTable(User.__table__)) # type: ignore
