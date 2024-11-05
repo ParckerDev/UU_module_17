@@ -28,8 +28,11 @@ async def user_by_id(db: Annotated[Session, Depends(get_db)], user_id):
         )
 
 @router.post('/create')
-async def create_user():
-    pass
+async def create_user(db: Annotated[Session, Depends(get_db)], create_user: CreateUser):
+    db.execute(insert(User).values(username=create_user.username,
+                                   firstname=create_user.firstname,
+                                   lastname=create_user.lastname,
+                                   age=create_user.age))
 
 @router.put('/update')
 async def update_user():
