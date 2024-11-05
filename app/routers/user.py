@@ -18,19 +18,19 @@ async def get_all_users(db: Annotated[Session, Depends(get_db)]):
 
 @router.get('/user_id')
 async def user_by_id(db: Annotated[Session, Depends(get_db)], user_id):
-    user = db.scalars(select(User).where(User.id == user_id))
+    user = db.scalars(select(User).where(User.id == user_id)).one_or_none()
     if user:
         return user
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail='User not found'
+            detail='User was not found'
         )
 
 @router.post('/create')
 async def create_user(db: Annotated[Session, Depends(get_db)], create_user: CreateUser):
-    user = db.scalars(select(User).where(User.username == create_user.username)).all()
-    if user:
+    user = db.scalars(select(User).where(User.username == create_user.username)).one_or_none()
+    if not user:
         db.execute(insert(User).values(username=create_user.username,
                                        firstname=create_user.firstname,
                                        lastname=create_user.lastname,
@@ -39,10 +39,8 @@ async def create_user(db: Annotated[Session, Depends(get_db)], create_user: Crea
         db.commit()
         return {'status_code': status.HTTP_201_CREATED, 'transaction': 'Successful'}
     else:
-        raise HTTPException(
-            status_code=status.HTTP_204_NO_CONTENT,
-            detail=f"There's already a user named {create_user.username}. Specify another value."
-        )
+        return {'status_code': status.HTTP_404_NOT_FOUND, 'transaction': 'Failed'}
+    
 
 @router.put('/update')
 async def update_user(db: Annotated[Session, Depends(get_db)], user_id: int, update_user: UpdateUser):
