@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
+from app.models.task import Task
 from backend.db_depend import get_db
 from typing import Annotated
 from models import User
@@ -26,6 +27,12 @@ async def user_by_id(db: Annotated[Session, Depends(get_db)], user_id):
             status_code=status.HTTP_404_NOT_FOUND,
             detail='User was not found'
         )
+    
+@router.get('/user_id/tasks')
+async def get_tasks_by_user_id(db: Annotated[Session, Depends(get_db)], user_id):
+    tasks = db.scalars(select(Task).where(Task.user_id == user_id)).all()
+    return tasks
+
 
 @router.post('/create')
 async def create_user(db: Annotated[Session, Depends(get_db)], create_user: CreateUser):
@@ -66,6 +73,7 @@ async def delete_user(db: Annotated[Session, Depends(get_db)], user_id):
             status_code=status.HTTP_404_NOT_FOUND,
             detail='User was not found'
         )
-    db.execute(delete(User).where(User.id == user_id))
+    db.execute(delete(User).where(User.id == user_id),
+               delete(Task).where(Task.user_id == user_id))
     db.commit()
-    return {'status_code': status.HTTP_200_OK, 'transaction': 'User delete is successful!'}
+    return {'status_code': status.HTTP_200_OK, 'transaction': 'User and Tasks delete is successful!'}
