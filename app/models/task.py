@@ -1,7 +1,7 @@
-from app.models.base import Base
+from .base import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from app.models import *
+from models import *
 
 
 
